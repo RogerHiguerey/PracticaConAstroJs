@@ -1,0 +1,42 @@
+---
+import BlogPost from '../../components/BlogPost.astro';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import type { MarkdownInstance } from 'astro';
+
+export async function getStaticPaths() {
+  interface PostMetadata {
+    title: string;
+    date: string;
+    tags?: string[]; // Asegúrate de que los campos adicionales se incluyan aquí
+  };
+
+  const allPosts: MarkdownInstance<PostMetadata>[] = await Astro.glob('../posts/*.md');
+  
+  // Obtener todas las etiquetas únicas
+  const tags = Array.from(new Set(allPosts.flatMap(post => post.frontmatter.tags || [])));
+
+  // Retornar las rutas estáticas con sus propiedades correspondientes
+  return tags.map(tag => ({
+    params: { tag: encodeURIComponent(tag) },
+    props: { posts: allPosts },
+  }));
+}
+
+// Obtener `tag` y `posts` de los parámetros y propiedades de Astro
+const { tag: encodedTag } = Astro.params;
+const { posts } = Astro.props;
+
+// Decodificar el parámetro `tag`
+const tag = decodeURIComponent(encodedTag);
+
+// Filtrar los posts basados en la etiqueta
+const filteredPosts = posts.filter((post) => post.frontmatter.tags?.includes(tag));
+---
+<BaseLayout pageTitle={tag}>
+  <p>Entradas etiquetadas con {tag}</p>
+  <ul>
+    {filteredPosts.map(post => (
+      <BlogPost url={post.url} title={post.frontmatter.title}/>
+    ))}
+  </ul>
+</BaseLayout>
