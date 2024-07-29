@@ -1,5 +1,5 @@
 ---
-layout: ../../layouts/MarkdownPostLayout.astro
+# layout: ../../layouts/MarkdownPostLayout.astro
 title: 'Mi Segunda publicación en el blog'
 author: 'Alumno de Astro'
 pubDate: 2022-07-01

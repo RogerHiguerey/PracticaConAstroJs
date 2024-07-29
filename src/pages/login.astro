@@ -1,0 +1,61 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import '../styles/global.css';
+
+import { login } from '../utils/api';
+import type { LoginResponse } from '../utils/api';
+
+let userEmail: string = '';
+let userPass: string = '';
+let error: string = '';
+let token: string = '';
+
+async function handleSubmit(event: Event) {
+  event.preventDefault();
+  try {
+    const response: LoginResponse = await login(userEmail, userPass);
+    token = response.token;
+    console.log('Token:', token);
+    // Guardar el token o redirigir al usuario a otra página
+  } catch (err) {
+    if (err instanceof Error) {
+      error = err.message;
+    }
+  }
+}
+
+const pageTitle = "Login";
+---
+<BaseLayout pageTitle={pageTitle}>
+  <h2>Login</h2>
+  {error && <p style="color: red;">{error}</p>}
+  <form onsubmit={handleSubmit}>
+    <label>
+      Email:
+      <input type="email" value={userEmail} oninput={(e) => userEmail = (e.target as HTMLInputElement).value} required />
+    </label>
+    <label>
+      Contraseña:
+      <input type="password" value={userPass} oninput={(e) => userPass = (e.target as HTMLInputElement).value} required />
+    </label>
+    <button type="submit">Iniciar sesión</button>
+  </form>
+  {token && <p>Login exitoso. Token: {token}</p>}
+</BaseLayout>
+
+<!-- <BaseLayout title="Login">
+  <h2>Login</h2>
+  {error && <p style="color: red;">{error}</p>}
+  <form on:submit={handleSubmit}>
+    <label>
+      Email:
+      <input type="email" value={userEmail} onInput={(e) => userEmail = (e.target as HTMLInputElement).value} required />
+    </label>
+    <label>
+      Contraseña:
+      <input type="password" value={userPass} onInput={(e) => userPass = (e.target as HTMLInputElement).value} required />
+    </label>
+    <button type="submit">Iniciar sesión</button>
+  </form>
+  {token && <p>Login exitoso. Token: {token}</p>}
+</BaseLayout> -->

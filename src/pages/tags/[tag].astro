@@ -1,4 +1,5 @@
 ---
+import { getCollection } from "astro:content";
 import BlogPost from '../../components/BlogPost.astro';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import type { MarkdownInstance } from 'astro';
@@ -10,16 +11,28 @@ export async function getStaticPaths() {
     tags?: string[]; // Asegúrate de que los campos adicionales se incluyan aquí
   };
 
-  const allPosts: MarkdownInstance<PostMetadata>[] = await Astro.glob('../posts/*.md');
+  // const allPosts: MarkdownInstance<PostMetadata>[] = await Astro.glob('../posts/*.md');
+  const allPosts = await getCollection("posts");
   
   // Obtener todas las etiquetas únicas
-  const tags = Array.from(new Set(allPosts.flatMap(post => post.frontmatter.tags || [])));
+  // const tags = Array.from(new Set(allPosts.flatMap(post => post.frontmatter.tags || [])));
+  const uniqueTags = [...new Set(allPosts.map((post) => post.data.tags).flat())];
 
   // Retornar las rutas estáticas con sus propiedades correspondientes
-  return tags.map(tag => ({
-    params: { tag: encodeURIComponent(tag) },
-    props: { posts: allPosts },
-  }));
+  // return tags.map(tag => ({
+  //   params: { tag: encodeURIComponent(tag) },
+  //   props: { posts: allPosts },
+  // }));
+  return uniqueTags.map((tag) => {
+      const filteredPosts = allPosts.filter((post) =>
+        post.data.tags.includes(tag)
+      );
+      return {
+        params: { tag },
+        props: { posts: filteredPosts },
+      };
+    }
+  );
 }
 
 // Obtener `tag` y `posts` de los parámetros y propiedades de Astro
@@ -30,13 +43,17 @@ const { posts } = Astro.props;
 const tag = decodeURIComponent(encodedTag);
 
 // Filtrar los posts basados en la etiqueta
-const filteredPosts = posts.filter((post) => post.frontmatter.tags?.includes(tag));
+// const filteredPosts = posts.filter((post) => post.frontmatter.tags?.includes(tag));
 ---
 <BaseLayout pageTitle={tag}>
-  <p>Entradas etiquetadas con {tag}</p>
+  <!-- <p>Entradas etiquetadas con {tag}</p>
   <ul>
     {filteredPosts.map(post => (
       <BlogPost url={post.url} title={post.frontmatter.title}/>
     ))}
+  </ul> -->
+  <p>Artículos con la etiqueta {tag}</p>
+  <ul>
+    { posts.map((post) => <BlogPost url={`/posts/${post.slug}/`} title={post.data.title} />) }
   </ul>
 </BaseLayout>
